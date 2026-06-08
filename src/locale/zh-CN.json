@@ -1,0 +1,18 @@
+{
+  "JS Templates": "JS 模板",
+  "Template settings": "模板设置",
+  "Configure template": "配置模板",
+  "Table refresh": "表格刷新",
+  "Filter (search box)": "筛选(搜索框)",
+  "Card list": "卡片列表",
+  "Target table block (optional)": "目标表格区块(可选)",
+  "Target block to filter": "要筛选的目标区块",
+  "Button text": "按钮文字",
+  "Search fields": "搜索字段",
+  "Match": "匹配方式",
+  "Placeholder": "占位提示",
+  "Data collection": "数据表",
+  "Title field": "标题字段",
+  "Body fields": "内容字段",
+  "Max items": "最多条数"
+}
