@@ -33,6 +33,46 @@ module.exports = __toCommonJS(plugin_exports);
 var import_server = require("@nocobase/server");
 class PluginFlowTemplateLibraryServer extends import_server.Plugin {
   async load() {
+    this.db.collection({
+      name: "jsTemplates",
+      title: "JS Templates",
+      shared: true,
+      fields: [
+        { type: "string", name: "key", unique: true, allowNull: false },
+        { type: "string", name: "label" },
+        { type: "text", name: "description" },
+        { type: "string", name: "icon" },
+        { type: "string", name: "kind" },
+        // block | item | action | column
+        { type: "json", name: "alsoKinds" },
+        { type: "string", name: "scope" },
+        // record | collection | any
+        { type: "string", name: "category" },
+        { type: "json", name: "scenes" },
+        { type: "integer", name: "sort" },
+        { type: "boolean", name: "logicOnly" },
+        { type: "json", name: "params" },
+        { type: "text", name: "body" },
+        { type: "boolean", name: "rawCode" },
+        // false → hide this key from the gallery (works for built-ins too)
+        { type: "boolean", name: "enabled" },
+        // free-form note shown in the admin page (who added it / why)
+        { type: "text", name: "note" }
+      ]
+    });
+    this.app.acl.allow("jsTemplates", ["list", "get"], "loggedIn");
+    this.app.on("afterStart", async () => {
+      const collection = this.db.getCollection("jsTemplates");
+      if (collection && !await collection.existsInDb()) {
+        await collection.sync();
+      }
+    });
+  }
+  async install() {
+    const collection = this.db.getCollection("jsTemplates");
+    if (collection && !await collection.existsInDb()) {
+      await collection.sync();
+    }
   }
 }
 var plugin_default = PluginFlowTemplateLibraryServer;

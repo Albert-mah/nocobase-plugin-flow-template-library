@@ -7,10 +7,13 @@ import { Template } from '../core/types';
  */
 export const rowPrint: Template = {
   key: 'rowPrint',
+  scope: 'record',
   kind: 'action',
   label: 'Print row',
   description: 'A row button that prints the current record',
   icon: '🖨️',
+  category: 'Action',
+  scenes: ['Table'],
   sort: 818,
   params: [
     { name: 'fields', type: 'fields', label: 'Fields to print (blank = all)' },

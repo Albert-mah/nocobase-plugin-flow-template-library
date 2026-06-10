@@ -8,4 +8,7 @@ import { Template } from './types';
  * quotes/newlines, while a JSON-serialized object is always valid and the body
  * just reads `$p.fieldName`.
  */
+/** djb2 — fingerprint of the generated code, stored alongside the template
+ *  config so we can detect manual edits to the JS (drift) on reconfigure */
+export declare function hashCode(s: string): number;
 export declare function generateCode(template: Template, params: Record<string, any>): string;

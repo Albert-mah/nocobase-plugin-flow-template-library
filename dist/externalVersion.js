@@ -11,7 +11,7 @@ module.exports = {
   "@nocobase/flow-engine": "2.1.0-beta.11",
   "@nocobase/client": "2.1.0-beta.11",
   "@nocobase/server": "2.1.0-beta.11",
-  "@formily/react": "2.3.7",
   "antd": "5.24.2",
-  "react": "18.2.0"
+  "react": "18.2.0",
+  "@nocobase/utils": "2.1.0-beta.11"
 };

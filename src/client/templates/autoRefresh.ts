@@ -6,10 +6,13 @@ import { Template } from '../core/types';
  */
 export const autoRefresh: Template = {
   key: 'autoRefresh',
+  scope: 'collection',
   kind: 'action',
   label: 'Auto-refresh toggle',
   description: 'A switch that periodically refreshes a table block',
   icon: '⏱️',
+  category: 'Action',
+  scenes: ['Table'],
   sort: 815,
   params: [
     { name: 'targetUid', type: 'targetBlock', label: 'Table block to refresh (optional)' },

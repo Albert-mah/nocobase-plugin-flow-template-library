@@ -7,13 +7,17 @@ import { Template } from '../core/types';
  */
 export const formCalc: Template = {
   key: 'formCalc',
+  logicOnly: true,
+  scope: 'record',
   kind: 'item',
   label: 'Form calculator',
   description: 'Live sum/product of other form fields',
   icon: '🧮',
+  category: 'Stats',
+  scenes: ['Form'],
   sort: 850,
   params: [
-    { name: 'fields', type: 'fields', label: 'Number fields to combine' },
+    { name: 'fields', type: 'fields', label: 'Number fields to combine', accepts: 'numeric' },
     {
       name: 'op',
       type: 'select',
