@@ -11,6 +11,7 @@ import {
   JsTemplateRow,
   loadLibrary,
   parseTemplatePack,
+  usageOf,
 } from './templateLibrary';
 
 const { Text, Paragraph } = Typography;
@@ -40,6 +41,9 @@ export const TemplateLibraryAdmin: React.FC = () => {
   const [busy, setBusy] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [importText, setImportText] = useState('');
+  const [editOpen, setEditOpen] = useState<null | { title: string; isNew?: boolean }>(null);
+  const [editText, setEditText] = useState('');
+  const [q, setQ] = useState('');
 
   const reload = async () => {
     setBusy(true);
@@ -89,6 +93,75 @@ export const TemplateLibraryAdmin: React.FC = () => {
     await reload();
   };
 
+  // editable JSON for a key: the existing row, or the built-in materialized
+  // into a full row (saving it creates an override)
+  const NEW_SKELETON: any = {
+    key: 'myTemplate',
+    label: 'My template',
+    description: '',
+    icon: '🧩',
+    kind: 'block',
+    scope: 'any',
+    category: 'Custom',
+    scenes: ['Dashboard'],
+    sort: 500,
+    params: [{ name: 'title', type: 'text', label: 'Title', default: 'Hello' }],
+    body: "\nfunction MyBlock() {\n  return <div style={{ padding: 16 }}>{$p.title}</div>;\n}\nctx.render(<MyBlock />);\n",
+    note: '',
+  };
+
+  const openEdit = (key?: string) => {
+    if (!key) {
+      setEditText(JSON.stringify(NEW_SKELETON, null, 2));
+      setEditOpen({ title: 'New template', isNew: true });
+      return;
+    }
+    const row = rows.find((r) => r.key === key);
+    if (row) {
+      const { id, updatedAt, createdAt, createdById, updatedById, ...rest } = row as any;
+      setEditText(JSON.stringify(rest, null, 2));
+      setEditOpen({ title: `Edit — ${key}` });
+      return;
+    }
+    const b: any = builtinTemplates.find((t) => t.key === key);
+    if (!b) return;
+    const materialized = {
+      key: b.key, label: b.label, description: b.description, icon: b.icon,
+      kind: b.kind, alsoKinds: b.alsoKinds, scope: b.scope, category: b.category,
+      scenes: b.scenes, sort: b.sort, logicOnly: b.logicOnly, params: b.params,
+      body: b.body, rawCode: b.rawCode, note: 'customized from built-in',
+    };
+    setEditText(JSON.stringify(materialized, null, 2));
+    setEditOpen({ title: `Customize built-in — ${key} (saving creates an override)` });
+  };
+
+  const saveEdit = async () => {
+    let row: any;
+    try {
+      row = JSON.parse(editText);
+    } catch (e: any) {
+      message.error('Invalid JSON: ' + e.message);
+      return;
+    }
+    if (!row || typeof row.key !== 'string' || !row.key.trim()) {
+      message.error('A non-empty "key" is required');
+      return;
+    }
+    if (editOpen?.isNew && (rows.some((r) => r.key === row.key) || builtinTemplates.some((t) => t.key === row.key))) {
+      message.error(`Key "${row.key}" already exists — pick another`);
+      return;
+    }
+    setBusy(true);
+    try {
+      await upsert(row);
+      setEditOpen(null);
+      message.success('Saved');
+    } catch (e: any) {
+      message.error(e?.response?.data?.errors?.[0]?.message || e?.message || 'Save failed');
+    }
+    setBusy(false);
+  };
+
   const doImport = async (text: string) => {
     try {
       const parsed = parseTemplatePack(text);
@@ -130,12 +203,21 @@ export const TemplateLibraryAdmin: React.FC = () => {
         </Space>
       ),
     },
+    {
+      title: 'Usage',
+      width: 80,
+      sorter: (a2: DisplayRow, b2: DisplayRow) => usageOf(a2.key) - usageOf(b2.key),
+      render: (_: any, r: DisplayRow) => usageOf(r.key) || '—',
+    },
     { title: 'Note', dataIndex: 'note', ellipsis: true },
     {
       title: 'Actions',
       width: 220,
       render: (_: any, r: DisplayRow) => (
         <Space size={8}>
+          <Button size="small" onClick={() => openEdit(r.key)}>
+            {r.source === 'builtin' ? 'Customize' : 'Edit'}
+          </Button>
           {r.source === 'builtin' && !r.hidden ? (
             <Popconfirm title="Hide this built-in from the gallery?" onConfirm={() => upsert({ key: r.key, enabled: false })}>
               <Button size="small">Hide</Button>
@@ -170,7 +252,10 @@ export const TemplateLibraryAdmin: React.FC = () => {
         whoever uses the template — keep write access to this collection admin-only.
       </Paragraph>
       <Space style={{ marginBottom: 12 }} wrap>
-        <Button onClick={() => setImportOpen(true)} type="primary">
+        <Button onClick={() => openEdit()} type="primary">
+          + New template
+        </Button>
+        <Button onClick={() => setImportOpen(true)}>
           ⬆ Import templates
         </Button>
         <Button onClick={() => downloadJson('js-templates-custom.json', exportPack(getRows()))} disabled={!rows.length}>
@@ -182,8 +267,22 @@ export const TemplateLibraryAdmin: React.FC = () => {
         <Button onClick={reload} loading={busy}>
           Refresh
         </Button>
+        <Input
+          allowClear
+          placeholder="Search key / label…"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          style={{ width: 220 }}
+        />
       </Space>
-      <Table size="small" rowKey="key" loading={busy} columns={columns as any} dataSource={data} pagination={{ pageSize: 20, showSizeChanger: false }} />
+      <Table
+        size="small"
+        rowKey="key"
+        loading={busy}
+        columns={columns as any}
+        dataSource={data.filter((r) => !q || (r.key + ' ' + r.label).toLowerCase().includes(q.toLowerCase()))}
+        pagination={{ pageSize: 50, showSizeChanger: false }}
+      />
 
       <Modal
         title="Import templates"
@@ -218,6 +317,31 @@ export const TemplateLibraryAdmin: React.FC = () => {
           onChange={(e) => setImportText(e.target.value)}
           placeholder='{"__jsTpl":"templates","templates":[{"key":"myKpi","label":"My KPI", ...}]}'
           style={{ fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 12 }}
+        />
+      </Modal>
+
+      <Modal
+        title={editOpen?.title}
+        open={!!editOpen}
+        onCancel={() => setEditOpen(null)}
+        onOk={saveEdit}
+        okText="Save"
+        confirmLoading={busy}
+        width={760}
+      >
+        <Alert
+          type="info"
+          showIcon
+          style={{ marginBottom: 10 }}
+          message={'The row upserts by "key". Fields left out (or null) fall back to the built-in values; "body" is the template JS (JSX allowed, reference config via $p.*).'}
+        />
+        <Input.TextArea
+          rows={18}
+          value={editText}
+          onChange={(e) => setEditText(e.target.value)}
+          spellCheck={false}
+          style={{ fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 12 }}
+          data-tpl-edit
         />
       </Modal>
     </Card>

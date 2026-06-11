@@ -60,18 +60,31 @@ class PluginFlowTemplateLibraryServer extends import_server.Plugin {
         { type: "text", name: "note" }
       ]
     });
+    this.db.collection({
+      name: "jsTemplateUsage",
+      title: "JS Template Usage",
+      shared: true,
+      fields: [
+        { type: "string", name: "key", unique: true, allowNull: false },
+        { type: "integer", name: "count", defaultValue: 0 },
+        { type: "date", name: "lastUsedAt" }
+      ]
+    });
     this.app.acl.allow("jsTemplates", ["list", "get"], "loggedIn");
+    this.app.acl.allow("jsTemplateUsage", ["list", "get", "updateOrCreate"], "loggedIn");
     this.app.on("afterStart", async () => {
-      const collection = this.db.getCollection("jsTemplates");
-      if (collection && !await collection.existsInDb()) {
-        await collection.sync();
-      }
+      await this.syncTables();
     });
   }
   async install() {
-    const collection = this.db.getCollection("jsTemplates");
-    if (collection && !await collection.existsInDb()) {
-      await collection.sync();
+    await this.syncTables();
+  }
+  async syncTables() {
+    for (const name of ["jsTemplates", "jsTemplateUsage"]) {
+      const collection = this.db.getCollection(name);
+      if (collection && !await collection.existsInDb()) {
+        await collection.sync();
+      }
     }
   }
 }

@@ -1,7 +1,7 @@
 import { useFlowSettingsContext } from '@nocobase/flow-engine';
 import { Alert, Button, Col, Empty, Input, InputNumber, Modal, Popconfirm, Row, Select, Space, Switch, Tag, Typography, message } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { getLibrary, loadLibrary, onLibraryChange } from './templateLibrary';
+import { bumpUsage, getLibrary, loadLibrary, onLibraryChange, usageOf } from './templateLibrary';
 import { FilterOptionsBuilder } from './FilterOptionsBuilder';
 import { generateCode, hashCode } from './generateCode';
 import { styleThumbs } from './styleThumbs';
@@ -659,7 +659,11 @@ export function makeTemplatePicker(kind: TemplateKind) {
       return off;
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-    const list = useMemo(() => [...library].sort((a, b) => (a.sort ?? 999) - (b.sort ?? 999)), [library]);
+    // most-used first, curated sort as tiebreaker
+    const list = useMemo(
+      () => [...library].sort((a, b) => usageOf(b.key) - usageOf(a.key) || (a.sort ?? 999) - (b.sort ?? 999)),
+      [library],
+    );
     const allCategories = useMemo(() => {
       const s: string[] = [];
       list.forEach((t) => { const c = t.category; if (c && !s.includes(c)) s.push(c); });
@@ -759,6 +763,7 @@ export function makeTemplatePicker(kind: TemplateKind) {
       });
       setTemplateKey(t.key);
       setParams(defaults);
+      bumpUsage(ctx?.api, t.key);
       emit(t.key, defaults);
       // the selected card expands full-width and is pinned to the top of the
       // list; scroll the dialog up so the config panel is in view (picking a
@@ -809,6 +814,7 @@ export function makeTemplatePicker(kind: TemplateKind) {
       }
       setTemplateKey(t.key);
       setParams(p || {});
+      bumpUsage(ctx?.api, t.key);
       emit(t.key, p || {});
       setTimeout(() => topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
     };

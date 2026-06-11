@@ -14,5 +14,6 @@ import { Plugin } from '@nocobase/server';
 export declare class PluginFlowTemplateLibraryServer extends Plugin {
     load(): Promise<void>;
     install(): Promise<void>;
+    private syncTables;
 }
 export default PluginFlowTemplateLibraryServer;

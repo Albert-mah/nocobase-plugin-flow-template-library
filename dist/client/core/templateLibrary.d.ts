@@ -39,6 +39,10 @@ export declare function isBuiltin(key: string): boolean;
 export declare function onLibraryChange(fn: () => void): () => void;
 /** fetch overlay rows and rebuild the merged list; safe to call repeatedly */
 export declare function loadLibrary(api: any): Promise<Template[]>;
+export declare function getUsage(): Record<string, number>;
+export declare function usageOf(key: string): number;
+/** bump locally (live re-rank) and persist best-effort */
+export declare function bumpUsage(api: any, key: string): void;
 export declare const TEMPLATE_PACK_MAGIC = "templates";
 export declare function exportPack(rows: JsTemplateRow[]): {
     __jsTpl: string;

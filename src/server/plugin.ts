@@ -40,23 +40,41 @@ export class PluginFlowTemplateLibraryServer extends Plugin {
       ],
     });
 
+    // per-template usage counters — most-used templates rank first in the
+    // gallery; counted when a UI configurer picks a template
+    this.db.collection({
+      name: 'jsTemplateUsage',
+      title: 'JS Template Usage',
+      shared: true,
+      fields: [
+        { type: 'string', name: 'key', unique: true, allowNull: false },
+        { type: 'integer', name: 'count', defaultValue: 0 },
+        { type: 'date', name: 'lastUsedAt' },
+      ],
+    });
+
     // the picker fetches the overlay list as whoever is configuring the UI
     this.app.acl.allow('jsTemplates', ['list', 'get'], 'loggedIn');
+    // counters are written by whoever configures the UI
+    this.app.acl.allow('jsTemplateUsage', ['list', 'get', 'updateOrCreate'], 'loggedIn');
 
-    // retrofit: create the table when the plugin was enabled before this
-    // version (fresh installs get it via install() → collection.sync)
+    // retrofit: create the tables when the plugin was enabled before this
+    // version (fresh installs get them via install() → collection.sync)
     this.app.on('afterStart', async () => {
-      const collection = this.db.getCollection('jsTemplates');
-      if (collection && !(await collection.existsInDb())) {
-        await collection.sync();
-      }
+      await this.syncTables();
     });
   }
 
   async install() {
-    const collection = this.db.getCollection('jsTemplates');
-    if (collection && !(await collection.existsInDb())) {
-      await collection.sync();
+    await this.syncTables();
+  }
+
+  private async syncTables() {
+    for (const name of ['jsTemplates', 'jsTemplateUsage']) {
+      const collection = this.db.getCollection(name);
+      if (collection && !(await collection.existsInDb())) {
+        await collection.sync();
+      }
     }
   }
 }

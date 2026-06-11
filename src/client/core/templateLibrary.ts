@@ -101,16 +101,49 @@ export function onLibraryChange(fn: () => void): () => void {
 export async function loadLibrary(api: any): Promise<Template[]> {
   if (!api) return merged;
   try {
-    const res = await api.request({
-      url: 'jsTemplates:list',
-      params: { pageSize: 500, sort: ['key'] },
-    });
+    const [res, usageRes] = await Promise.all([
+      api.request({ url: 'jsTemplates:list', params: { pageSize: 500, sort: ['key'] } }),
+      api.request({ url: 'jsTemplateUsage:list', params: { pageSize: 1000 } }).catch(() => null),
+    ]);
     rowsCache = res?.data?.data || [];
+    usage = {};
+    for (const u of usageRes?.data?.data || []) {
+      if (u?.key) usage[u.key] = u.count || 0;
+    }
     rebuild();
   } catch (e) {
     // table missing / no permission → built-ins only
   }
   return merged;
+}
+
+// ---- usage ranking ------------------------------------------------------------
+// most-used templates rank first in the gallery (usage desc, then curated sort)
+
+let usage: Record<string, number> = {};
+
+export function getUsage(): Record<string, number> {
+  return usage;
+}
+
+export function usageOf(key: string): number {
+  return usage[key] || 0;
+}
+
+/** bump locally (live re-rank) and persist best-effort */
+export function bumpUsage(api: any, key: string) {
+  if (!key) return;
+  usage[key] = (usage[key] || 0) + 1;
+  listeners.forEach((fn) => fn());
+  if (!api) return;
+  api
+    .request({
+      url: 'jsTemplateUsage:updateOrCreate',
+      method: 'post',
+      params: { filterKeys: ['key'] },
+      data: { key, count: usage[key], lastUsedAt: new Date().toISOString() },
+    })
+    .catch(() => {});
 }
 
 // ---- import / export packs ---------------------------------------------------
