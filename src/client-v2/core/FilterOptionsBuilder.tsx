@@ -276,6 +276,16 @@ export function FilterOptionsBuilder(props: {
     }
   };
 
+  // conditions are built on the TARGET's collection — until a target block is
+  // picked there is nothing meaningful to configure, so keep this collapsed
+  if (!collectionName) {
+    return (
+      <div style={{ fontSize: 12, color: '#999', padding: '6px 0' }}>
+        ↑ Pick the target block(s) first — each option's conditions are built on the target's collection.
+      </div>
+    );
+  }
+
   return (
     <div>
       {!options.length ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No options yet" style={{ margin: '8px 0' }} /> : null}
