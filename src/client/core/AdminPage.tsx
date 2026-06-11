@@ -214,17 +214,22 @@ export const TemplateLibraryAdmin: React.FC = () => {
       title: 'Actions',
       width: 220,
       render: (_: any, r: DisplayRow) => (
-        <Space size={8}>
-          <Button size="small" onClick={() => openEdit(r.key)}>
+        <Space size={0} split={<span style={{ color: 'rgba(0,0,0,0.15)', padding: '0 4px' }}>|</span>}>
+          <Button type="link" size="small" style={{ padding: 0 }} onClick={() => openEdit(r.key)}>
             {r.source === 'builtin' ? 'Customize' : 'Edit'}
           </Button>
           {r.source === 'builtin' && !r.hidden ? (
             <Popconfirm title="Hide this built-in from the gallery?" onConfirm={() => upsert({ key: r.key, enabled: false })}>
-              <Button size="small">Hide</Button>
+              <Button type="link" size="small" style={{ padding: 0 }}>Hide</Button>
             </Popconfirm>
           ) : null}
           {r.hidden ? (
-            <Button size="small" onClick={() => (r.source === 'override' && r.rowId ? upsert({ key: r.key, enabled: true }) : removeRow(r.key))}>
+            <Button
+              type="link"
+              size="small"
+              style={{ padding: 0 }}
+              onClick={() => (r.source === 'override' && r.rowId ? upsert({ key: r.key, enabled: true }) : removeRow(r.key))}
+            >
               Unhide
             </Button>
           ) : null}
@@ -233,7 +238,7 @@ export const TemplateLibraryAdmin: React.FC = () => {
               title={r.source === 'override' ? 'Delete the override (restore built-in)?' : 'Delete this custom template?'}
               onConfirm={() => removeRow(r.key)}
             >
-              <Button size="small" danger>
+              <Button type="link" size="small" danger style={{ padding: 0 }}>
                 {r.source === 'override' ? 'Restore built-in' : 'Delete'}
               </Button>
             </Popconfirm>
@@ -245,38 +250,38 @@ export const TemplateLibraryAdmin: React.FC = () => {
 
   return (
     <Card>
-      <Paragraph type="secondary" style={{ marginTop: 0 }}>
+      <Paragraph type="secondary" style={{ marginTop: 0, marginBottom: 16 }}>
         Built-in templates ship inside the plugin; rows in the <Text code>jsTemplates</Text> collection overlay them by{' '}
         <Text code>key</Text> — add custom templates, override built-ins (only the fields you set), or hide them. The
         gallery merges both at load time. ⚠️ Template <Text code>body</Text> is JavaScript executed in the browser of
         whoever uses the template — keep write access to this collection admin-only.
       </Paragraph>
-      <Space style={{ marginBottom: 12 }} wrap>
-        <Button onClick={() => openEdit()} type="primary">
-          + New template
-        </Button>
-        <Button onClick={() => setImportOpen(true)}>
-          ⬆ Import templates
-        </Button>
-        <Button onClick={() => downloadJson('js-templates-custom.json', exportPack(getRows()))} disabled={!rows.length}>
-          ⬇ Export table rows ({rows.length})
-        </Button>
-        <Button onClick={() => downloadJson('js-templates-library.json', exportLibrarySnapshot())}>
-          ⬇ Export full library snapshot
-        </Button>
-        <Button onClick={reload} loading={busy}>
-          Refresh
-        </Button>
-        <Input
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, gap: 8, flexWrap: 'wrap' }}>
+        <Input.Search
           allowClear
-          placeholder="Search key / label…"
+          placeholder="Search key / label"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          style={{ width: 220 }}
+          style={{ width: 240 }}
         />
-      </Space>
+        <Space>
+          <Button onClick={reload} loading={busy}>
+            Refresh
+          </Button>
+          <Button onClick={() => downloadJson('js-templates-custom.json', exportPack(getRows()))} disabled={!rows.length}>
+            Export rows ({rows.length})
+          </Button>
+          <Button onClick={() => downloadJson('js-templates-library.json', exportLibrarySnapshot())}>
+            Export library
+          </Button>
+          <Button onClick={() => setImportOpen(true)}>Import</Button>
+          <Button onClick={() => openEdit()} type="primary">
+            Add template
+          </Button>
+        </Space>
+      </div>
       <Table
-        size="small"
+        size="middle"
         rowKey="key"
         loading={busy}
         columns={columns as any}
