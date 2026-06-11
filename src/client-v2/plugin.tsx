@@ -1,7 +1,5 @@
-import { Plugin, tval } from '@nocobase/client';
-import { TemplateLibraryAdmin } from './core/AdminPage';
-import { loadLibrary } from './core/templateLibrary';
-import { NS } from './locale';
+import { Plugin } from '@nocobase/client-v2';
+import { loadLibrary, setLibraryApi } from './core/templateLibrary';
 import models from './models';
 
 export class PluginFlowTemplateLibraryClient extends Plugin {
@@ -11,14 +9,22 @@ export class PluginFlowTemplateLibraryClient extends Plugin {
     this.flowEngine.registerModels(models);
 
     // template management (import / export / overrides) in admin settings
-    this.app.pluginSettingsManager.add('flow-template-library', {
-      title: tval('JS Template Library', { ns: NS }),
+    const title = 'JS Template Library';
+    this.pluginSettingsManager.addMenuItem({
+      key: 'flow-template-library',
+      title,
       icon: 'AppstoreOutlined',
-      Component: TemplateLibraryAdmin,
+    });
+    this.pluginSettingsManager.addPageTabItem({
+      menuKey: 'flow-template-library',
+      key: 'index',
+      title,
+      componentLoader: () => import('./core/AdminPage'),
     });
 
     // warm the overlay (jsTemplates rows merged over code built-ins); the
     // picker also refreshes on open, this just removes first-open lag
+    setLibraryApi(this.app.apiClient);
     loadLibrary(this.app.apiClient).catch(() => {});
   }
 }

@@ -2,11 +2,21 @@
   "name": "@albert/plugin-flow-template-library",
   "displayName": "JS Template Library",
   "description": "Insert template-driven JS blocks / actions / items from the native add menu. Pick a template, fill a config form (fields, target blocks, collections), and the choices are injected as variables into the generated JS code.",
-  "version": "2.1.0-beta.11",
+  "version": "2.1.0-alpha.47",
   "main": "dist/server/index.js",
   "peerDependencies": {
     "@nocobase/client": "2.x",
+    "@nocobase/client-v2": "2.x",
     "@nocobase/server": "2.x",
     "@nocobase/test": "2.x"
-  }
+  },
+  "files": [
+    "dist",
+    "client.js",
+    "client.d.ts",
+    "client-v2.js",
+    "client-v2.d.ts",
+    "server.js",
+    "server.d.ts"
+  ]
 }

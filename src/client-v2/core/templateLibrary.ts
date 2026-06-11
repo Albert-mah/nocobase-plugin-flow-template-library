@@ -52,6 +52,16 @@ function applyRow(base: Template | undefined, row: JsTemplateRow): Template | nu
   return merged as Template;
 }
 
+// the plugin entry hands us the app's APIClient so UI (admin page) doesn't
+// depend on v1/v2-specific hooks
+let libApi: any = null;
+export function setLibraryApi(api: any) {
+  libApi = api;
+}
+export function getLibraryApi() {
+  return libApi;
+}
+
 let rowsCache: JsTemplateRow[] = [];
 let merged: Template[] = [...builtinTemplates];
 const listeners = new Set<() => void>();

@@ -1,4 +1,3 @@
-import { useAPIClient } from '@nocobase/client';
 import { Alert, Button, Card, Input, message, Modal, Popconfirm, Space, Table, Tag, Typography, Upload } from 'antd';
 import React, { useEffect, useMemo, useState } from 'react';
 import { templates as builtinTemplates } from '../templates';
@@ -12,6 +11,7 @@ import {
   loadLibrary,
   parseTemplatePack,
   usageOf,
+  getLibraryApi,
 } from './templateLibrary';
 
 const { Text, Paragraph } = Typography;
@@ -36,7 +36,7 @@ type DisplayRow = {
 };
 
 export const TemplateLibraryAdmin: React.FC = () => {
-  const api = useAPIClient();
+  const api = getLibraryApi();
   const [rows, setRows] = useState<JsTemplateRow[]>(getRows());
   const [busy, setBusy] = useState(false);
   const [importOpen, setImportOpen] = useState(false);

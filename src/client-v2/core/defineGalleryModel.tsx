@@ -1,4 +1,4 @@
-import { JSBlockModel, JSColumnModel, JSItemActionModel, JSItemModel } from '@nocobase/client';
+import { JSBlockModel, JSColumnModel, JSItemActionModel, JSItemModel } from '@nocobase/client-v2';
 import { ModelConstructor } from '@nocobase/flow-engine';
 import { tExpr } from '../locale';
 import { templates } from '../templates';

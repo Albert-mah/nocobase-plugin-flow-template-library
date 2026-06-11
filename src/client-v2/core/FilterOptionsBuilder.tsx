@@ -5,7 +5,7 @@ import {
   observable,
   pruneFilter,
 } from '@nocobase/flow-engine';
-import { FilterGroup, VariableFilterItem } from '@nocobase/client';
+import { FilterGroup, VariableFilterItem } from '@nocobase/client-v2';
 import { isEmptyFilter, transformFilter } from '@nocobase/utils/client';
 import { Button, Empty, Input, Select } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';

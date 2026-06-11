@@ -31,6 +31,8 @@ export type JsTemplateRow = {
     updatedAt?: string;
 };
 export type LibrarySource = 'builtin' | 'override' | 'custom';
+export declare function setLibraryApi(api: any): void;
+export declare function getLibraryApi(): any;
 /** current merged library (sync — built-ins until rows arrive) */
 export declare function getLibrary(): Template[];
 export declare function getRows(): JsTemplateRow[];
