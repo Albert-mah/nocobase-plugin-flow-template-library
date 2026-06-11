@@ -23,6 +23,8 @@ import { formAutoFill, formDrivenFilter, formSubtotal, formToggleBlocks } from '
 import { calendarHeatmap, commentFeed, donutChart, heroBanner, matrixHeatmap, statusSteps, timelineFeed } from './styled';
 // industry mini-tools
 import { dueSoon, funnelStages } from './industry';
+// data-viz (no native equivalent)
+import { pivotTable, quadrantScatter, tagCloud, ticker, trendKpi } from './dataViz';
 
 import { phonePreview } from './phone';
 // free-form SQL / JS
@@ -90,6 +92,12 @@ export const templates: Template[] = [
   // ── industry mini-tools ──
   funnelStages,
   dueSoon,
+  // ── data-viz (no native equivalent) ──
+  pivotTable,
+  trendKpi,
+  quadrantScatter,
+  tagCloud,
+  ticker,
   // ── form linkage ──
   formToggleBlocks,
   formDrivenFilter,
