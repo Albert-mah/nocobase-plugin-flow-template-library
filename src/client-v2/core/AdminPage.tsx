@@ -2,6 +2,7 @@ import { Alert, Button, Card, Input, message, Modal, Popconfirm, Space, Table, T
 import React, { useEffect, useMemo, useState } from 'react';
 import { templates as builtinTemplates } from '../templates';
 import { downloadJson } from './presets';
+import { TemplateBuilder } from './TemplateBuilder';
 import {
   exportLibrarySnapshot,
   exportPack,
@@ -42,6 +43,7 @@ export const TemplateLibraryAdmin: React.FC = () => {
   const [importOpen, setImportOpen] = useState(false);
   const [importText, setImportText] = useState('');
   const [editOpen, setEditOpen] = useState<null | { title: string; isNew?: boolean }>(null);
+  const [builder, setBuilder] = useState<null | { row: JsTemplateRow | null }>(null);
   const [editText, setEditText] = useState('');
   const [q, setQ] = useState('');
 
@@ -108,6 +110,27 @@ export const TemplateLibraryAdmin: React.FC = () => {
     params: [{ name: 'title', type: 'text', label: 'Title', default: 'Hello' }],
     body: "\nfunction MyBlock() {\n  return <div style={{ padding: 16 }}>{$p.title}</div>;\n}\nctx.render(<MyBlock />);\n",
     note: '',
+  };
+
+  // visual builder: new template, or edit row / customize builtin
+  const openBuilder = (key?: string) => {
+    if (!key) { setBuilder({ row: null }); return; }
+    const row = rows.find((r) => r.key === key);
+    if (row) {
+      const { id, updatedAt, createdAt, createdById, updatedById, ...rest } = row as any;
+      setBuilder({ row: rest });
+      return;
+    }
+    const b: any = builtinTemplates.find((t) => t.key === key);
+    if (!b) return;
+    setBuilder({
+      row: {
+        key: b.key, label: b.label, description: b.description, icon: b.icon,
+        kind: b.kind, alsoKinds: b.alsoKinds, scope: b.scope, category: b.category,
+        scenes: b.scenes, sort: b.sort, logicOnly: b.logicOnly, params: b.params,
+        body: b.body, rawCode: b.rawCode, note: 'customized from built-in',
+      } as any,
+    });
   };
 
   const openEdit = (key?: string) => {
@@ -215,8 +238,11 @@ export const TemplateLibraryAdmin: React.FC = () => {
       width: 220,
       render: (_: any, r: DisplayRow) => (
         <Space size={0} split={<span style={{ color: 'rgba(0,0,0,0.15)', padding: '0 4px' }}>|</span>}>
-          <Button type="link" size="small" style={{ padding: 0 }} onClick={() => openEdit(r.key)}>
+          <Button type="link" size="small" style={{ padding: 0 }} onClick={() => openBuilder(r.key)}>
             {r.source === 'builtin' ? 'Customize' : 'Edit'}
+          </Button>
+          <Button type="link" size="small" style={{ padding: 0, color: 'rgba(0,0,0,0.45)' }} onClick={() => openEdit(r.key)}>
+            JSON
           </Button>
           {r.source === 'builtin' && !r.hidden ? (
             <Popconfirm title="Hide this built-in from the gallery?" onConfirm={() => upsert({ key: r.key, enabled: false })}>
@@ -275,7 +301,7 @@ export const TemplateLibraryAdmin: React.FC = () => {
             Export library
           </Button>
           <Button onClick={() => setImportOpen(true)}>Import</Button>
-          <Button onClick={() => openEdit()} type="primary">
+          <Button onClick={() => openBuilder()} type="primary">
             Add template
           </Button>
         </Space>
@@ -349,6 +375,17 @@ export const TemplateLibraryAdmin: React.FC = () => {
           data-tpl-edit
         />
       </Modal>
+
+      <TemplateBuilder
+        open={!!builder}
+        initial={builder?.row || null}
+        existingKeys={[...builtinTemplates.map((t) => t.key), ...rows.map((r) => r.key)]}
+        onSave={async (row) => {
+          await upsert(row as any);
+          message.success('Template saved');
+        }}
+        onClose={() => setBuilder(null)}
+      />
     </Card>
   );
 };
